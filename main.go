@@ -19,7 +19,7 @@ type Opts struct {
   Url string
   Bucket string
   Pool string
-  Stding bool
+  Stdin bool
 }
 
 var opts = Opts{}
@@ -36,7 +36,7 @@ func usage(err string) {
 func init() {
   flag.Usage = func () {
     fmt.Fprintf(os.Stderr, "Usage of %s: \n", os.Args[0])
-    fmt.Fprintf(os.Stderr, "\t -stdin [-key regexp] [-filter JSON object] [-or]\n")
+    fmt.Fprintf(os.Stderr, "\t -stdin [-filter JSON object] [-or]\n")
     fmt.Fprintf(os.Stderr, "\t -bucket name [-key regexp] [-filter JSON object] [-url url] [-or] [-pool name]\n\n")
     flag.CommandLine.PrintDefaults()
   }
@@ -55,6 +55,12 @@ func init() {
     usage("When -stdin is not specified, use -bucket instead.")
   }
 
+  if *stdin == true && *key != "" {
+    usage("-key cannot be specified when -stdin is true.")
+  } else {
+    opts.RegexpKey = regexp.MustCompilePOSIX(*key)
+  }
+
   opts.Stdin  = *stdin
   opts.Url    = *url
   opts.Or     = *or
@@ -62,7 +68,6 @@ func init() {
   opts.Bucket = *bucket
   opts.Key    = *key
 
-  opts.RegexpKey = regexp.MustCompilePOSIX(opts.Key)
 
   var v interface{}
 
@@ -98,22 +103,63 @@ func getBucket(url, pool, bucket string) (*couchbase.Bucket, error) {
   return b, nil
 }
 
-func main() {
-  bucket, err := getBucket(opts.Url, opts.Pool, opts.Bucket)
-  if err != nil {
-    log.Fatal(err)
+type Stream struct {
+  C chan *Event
+  _ struct{}
+}
+
+type Event struct {
+  Key []byte
+  Value []byte
+  _ struct{}
+}
+
+func newStream() *Stream {
+  stream := &Stream{
+    C: make(chan *Event),
   }
 
-  tapArgs := memcached.DefaultTapArguments()
+  return stream
+}
 
-  feed, err := bucket.StartTapFeed(&tapArgs)
-  if err != nil {
-    log.Fatal(err)
+func newEvent(key, value []byte) *Event {
+  event := &Event{
+    Key: key,
+    Value: value,
+  }
+
+  return event
+}
+
+func main() {
+  stream := newStream()
+
+  if opts.Stdin == false {
+    bucket, err := getBucket(opts.Url, opts.Pool, opts.Bucket)
+    if err != nil {
+      log.Fatal(err)
+    }
+
+    tapArgs := memcached.DefaultTapArguments()
+
+    feed, err := bucket.StartTapFeed(&tapArgs)
+    if err != nil {
+      log.Fatal(err)
+    }
+
+    go func() {
+      for {
+        select {
+          case e := <- feed.C:
+            stream.C <- newEvent(e.Key, e.Value)
+        }
+      }
+    }()
   }
 
   for {
     select {
-      case e := <- feed.C:
+      case e := <- stream.C:
         display := true
 
         if opts.Key != "" {
