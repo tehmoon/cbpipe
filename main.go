@@ -15,17 +15,20 @@ type Opts struct {
   Key string
   Filter map[string]interface{}
   Or bool
+  Url string
 }
 
 var opts = Opts{}
 
 func init() {
   key := flag.String("key", "", "A POSIX regexp to filter a key")
-  filter := flag.String("filter", "{}", "A JSON object as filter: {\"username\": \"moon\"")
+  filter := flag.String("filter", "{}", "A JSON object as filter: {\"username\": \"moon\"}")
   or := flag.Bool("or", false, "Filter on Key OR filter")
+  url := flag.String("url", "http://localhost:8091", "Couchbase URL")
 
   flag.Parse()
 
+  opts.Url = *url
   opts.Or = *or
 
   opts.Key = *key
@@ -47,7 +50,7 @@ func init() {
 }
 
 func main() {
-  c, err := couchbase.Connect("http://10.0.0.6:8091")
+  c, err := couchbase.Connect(opts.Url)
   if err != nil {
     log.Fatal(err)
   }
