@@ -19,26 +19,43 @@ type Opts struct {
   Url string
   Bucket string
   Pool string
+  Stding bool
 }
 
 var opts = Opts{}
 
+func usage(err string) {
+  if err != "" {
+    err = fmt.Sprintf("%s\n\n", err)
+    fmt.Fprintf(os.Stderr, err)
+  }
+  flag.Usage()
+  os.Exit(2)
+}
+
 func init() {
-  key := flag.String("key", "", "A POSIX regexp to filter a key")
-  filter := flag.String("filter", "{}", "A JSON object as filter: {\"username\": \"moon\"}")
-  or := flag.Bool("or", false, "Filter on Key OR filter")
-  url := flag.String("url", "http://localhost:8091", "Couchbase URL")
-  bucket := flag.String("bucket", "", "Couchbase bucket name")
-  pool := flag.String("pool", "default", "Couchbase pool name")
+  flag.Usage = func () {
+    fmt.Fprintf(os.Stderr, "Usage of %s: \n", os.Args[0])
+    fmt.Fprintf(os.Stderr, "\t -stdin [-key regexp] [-filter JSON object] [-or]\n")
+    fmt.Fprintf(os.Stderr, "\t -bucket name [-key regexp] [-filter JSON object] [-url url] [-or] [-pool name]\n\n")
+    flag.CommandLine.PrintDefaults()
+  }
+
+  key    := flag.String("key", "", "A POSIX regexp to filter a key.")
+  filter := flag.String("filter", "{}", "A JSON object as filter: {\"username\": \"moon\"}.")
+  or     := flag.Bool("or", false, "Filter on Key OR filter.")
+  url    := flag.String("url", "http://localhost:8091", "Couchbase URL.")
+  bucket := flag.String("bucket", "", "Couchbase bucket name.")
+  pool   := flag.String("pool", "default", "Couchbase pool name.")
+  stdin  := flag.Bool("stdin", false, "Listen on stdin instead of Couchbase TAP.")
 
   flag.Parse()
 
-  if *bucket == "" {
-    fmt.Fprintf(os.Stderr, "%s -bucket bucketName [-key] [-filter] [-url] [-or] [-pool]\n\n", os.Args[0])
-    flag.Usage()
-    os.Exit(2)
+  if *bucket == "" && *stdin == false {
+    usage("When -stdin is not specified, use -bucket instead.")
   }
 
+  opts.Stdin  = *stdin
   opts.Url    = *url
   opts.Or     = *or
   opts.Pool   = *pool
