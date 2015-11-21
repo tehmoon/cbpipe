@@ -8,6 +8,7 @@ import (
   "flag"
   "regexp"
   "encoding/json"
+  "os"
 )
 
 type Opts struct {
@@ -16,6 +17,8 @@ type Opts struct {
   Filter map[string]interface{}
   Or bool
   Url string
+  Bucket string
+  Pool string
 }
 
 var opts = Opts{}
@@ -25,13 +28,23 @@ func init() {
   filter := flag.String("filter", "{}", "A JSON object as filter: {\"username\": \"moon\"}")
   or := flag.Bool("or", false, "Filter on Key OR filter")
   url := flag.String("url", "http://localhost:8091", "Couchbase URL")
+  bucket := flag.String("bucket", "", "Couchbase bucket name")
+  pool := flag.String("pool", "default", "Couchbase pool name")
 
   flag.Parse()
 
-  opts.Url = *url
-  opts.Or = *or
+  if *bucket == "" {
+    fmt.Fprintf(os.Stderr, "%s -bucket bucketName [-key] [-filter] [-url] [-or] [-pool]\n\n", os.Args[0])
+    flag.Usage()
+    os.Exit(2)
+  }
 
-  opts.Key = *key
+  opts.Url    = *url
+  opts.Or     = *or
+  opts.Pool   = *pool
+  opts.Bucket = *bucket
+  opts.Key    = *key
+
   opts.RegexpKey = regexp.MustCompilePOSIX(opts.Key)
 
   var v interface{}
@@ -49,18 +62,27 @@ func init() {
 
 }
 
-func main() {
+func getBucket(url, pool, bucket string) (*couchbase.Bucket, error) {
   c, err := couchbase.Connect(opts.Url)
   if err != nil {
-    log.Fatal(err)
+    return nil, err
   }
 
-  pool, err := c.GetPool("default")
+  p, err := c.GetPool(pool)
   if err != nil {
-    log.Fatal(err)
+    return nil, err
   }
 
-  bucket, err := pool.GetBucket("twitter")
+  b, err := p.GetBucket(bucket)
+  if err != nil {
+    return nil, err
+  }
+
+  return b, nil
+}
+
+func main() {
+  bucket, err := getBucket(opts.Url, opts.Pool, opts.Bucket)
   if err != nil {
     log.Fatal(err)
   }
