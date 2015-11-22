@@ -21,14 +21,15 @@ type Opts struct {
 }
 
 var opts = Opts{}
+var usageFunc = func() {
+  fmt.Fprintf(os.Stderr, "Usage of %s: \n", os.Args[0])
+  fmt.Fprintf(os.Stderr, "\t -stdin [-filter JSON object] [-or]\n")
+  fmt.Fprintf(os.Stderr, "\t -bucket name [-key regexp] [-filter JSON object] [-url url] [-or] [-pool name]\n\n")
+  flag.CommandLine.PrintDefaults()
+}
 
 func parseOpts() error {
-  flag.Usage = func () {
-    fmt.Fprintf(os.Stderr, "Usage of %s: \n", os.Args[0])
-    fmt.Fprintf(os.Stderr, "\t -stdin [-filter JSON object] [-or]\n")
-    fmt.Fprintf(os.Stderr, "\t -bucket name [-key regexp] [-filter JSON object] [-url url] [-or] [-pool name]\n\n")
-    flag.CommandLine.PrintDefaults()
-  }
+  flag.Usage = usageFunc
 
   key    := flag.String("key", "", "A POSIX regexp to filter a key.")
   filter := flag.String("filter", "{}", "A JSON object as filter: {\"username\": \"moon\"}.")
