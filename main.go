@@ -1,13 +1,8 @@
 package main
 
 import (
-  "fmt"
   "encoding/json"
 )
-
-func print(msg string) {
-  fmt.Println(msg)
-}
 
 func main() {
   stream := newStream()
