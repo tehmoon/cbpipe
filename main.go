@@ -12,7 +12,7 @@ import (
 func main() {
   stream := newStream()
 
-  if opts.Stdin == false {
+  if opts.Bucket != "" {
     go func() {
       bucket, err := getBucket(opts.Url, opts.Pool, opts.Bucket)
       if err != nil {
@@ -33,7 +33,8 @@ func main() {
         }
       }
     }()
-  } else {
+  }
+  if opts.Stdin != false {
     go func() {
       scanner := bufio.NewScanner(os.Stdin)
       for scanner.Scan() {

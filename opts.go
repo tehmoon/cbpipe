@@ -21,35 +21,31 @@ type Opts struct {
 }
 
 var opts = Opts{}
-var usageFunc = func() {
+
+func usageFunc() {
   fmt.Fprintf(os.Stderr, "Usage of %s: \n", os.Args[0])
-  fmt.Fprintf(os.Stderr, "\t -stdin [-filter JSON object] [-or]\n")
-  fmt.Fprintf(os.Stderr, "\t -bucket name [-key regexp] [-filter JSON object] [-url url] [-or] [-pool name]\n\n")
+  fmt.Fprintf(os.Stderr, "\t <-bucket name | -stdin> [-key regexp] [-filter JSON object] [-url url] [-or] [-pool name]\n\n")
   flag.CommandLine.PrintDefaults()
 }
 
 func parseOpts() error {
   flag.Usage = usageFunc
 
-  key    := flag.String("key", "", "A POSIX regexp to filter a key.")
+  key    := flag.String("key", "", "A POSIX regexp to filter a key. Doesn't affect -stdin filtering.")
   filter := flag.String("filter", "{}", "A JSON object as filter: {\"username\": \"moon\"}.")
   or     := flag.Bool("or", false, "Filter on Key OR filter.")
   url    := flag.String("url", "http://localhost:8091", "Couchbase URL.")
-  bucket := flag.String("bucket", "", "Couchbase bucket name.")
+  bucket := flag.String("bucket", "", "Listen on Couchbase bucket name.")
   pool   := flag.String("pool", "default", "Couchbase pool name.")
-  stdin  := flag.Bool("stdin", false, "Listen on stdin instead of Couchbase TAP.")
+  stdin  := flag.Bool("stdin", false, "Listen on stdin.")
 
   flag.Parse()
 
   if *bucket == "" && *stdin == false {
-    usage("When -stdin is not specified, use -bucket instead.")
+    return errors.New("Either -stdin or -bucket has to be specified.")
   }
 
-  if *stdin == true && *key != "" {
-    usage("-key cannot be specified when -stdin is true.")
-  } else {
-    opts.RegexpKey = regexp.MustCompilePOSIX(*key)
-  }
+  opts.RegexpKey = regexp.MustCompilePOSIX(*key)
 
   opts.Stdin  = *stdin
   opts.Url    = *url
