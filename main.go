@@ -5,6 +5,10 @@ import (
   "encoding/json"
 )
 
+func print(msg string) {
+  fmt.Println(msg)
+}
+
 func main() {
   stream := newStream()
 
@@ -31,7 +35,7 @@ func main() {
         }
 
         if opts.Or == true && display == true {
-          fmt.Println(string(e.Value[:]))
+          print(string(e.Value[:]))
           break
         }
 
@@ -69,7 +73,7 @@ func main() {
         }
 
         if display == true {
-          fmt.Println(string(e.Value[:]))
+          print(string(e.Value[:]))
         }
     }
   }
