@@ -4,6 +4,9 @@ import (
   "encoding/json"
 )
 
+
+//http://www.couchbase.com/wiki/display/couchbase/TAP+Protocol#
+
 func main() {
   stream := newStream()
 
