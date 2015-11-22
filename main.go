@@ -4,20 +4,10 @@ import (
   "github.com/couchbase/gomemcached/client"
   "log"
   "fmt"
-  "flag"
   "encoding/json"
   "os"
   "bufio"
 )
-
-func usage(err string) {
-  if err != "" {
-    err = fmt.Sprintf("%s\n\n", err)
-    fmt.Fprintf(os.Stderr, err)
-  }
-  flag.Usage()
-  os.Exit(2)
-}
 
 func main() {
   stream := newStream()
