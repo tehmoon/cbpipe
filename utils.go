@@ -6,6 +6,10 @@ import (
   "fmt"
 )
 
+func print(msg string) {
+  fmt.Println(msg)
+}
+
 func usage(err string) {
   if err != "" {
     err = fmt.Sprintf("%s\n\n", err)
