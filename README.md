@@ -45,3 +45,7 @@ Listen from a Couchbase bucket, pipe it to another listener from another Couchba
 ```shell:
 $> ./cbpipe -bucket twitter | ./cbpipe -stdin -bucket users > /tmp/dump.json
 ```
+
+Docs
+----
+* [Couchbase TAP API](http://www.couchbase.com/wiki/display/couchbase/TAP+Protocol)
