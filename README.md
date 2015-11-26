@@ -32,9 +32,9 @@ Usage of ./cbpipe:
 
 Examples
 --------
-Listen from a Couchbase bucket twitter filter from json and the name of the key from a POSIX regexp.   
+Listen from a Couchbase bucket twitter filter from json or the name of the key from a POSIX regexp.   
 ```shell:
-$> ./cbpipe -bucket twitter -filter '{"username": "moon"}' -key '^twitter-'
+$> ./cbpipe -bucket twitter -filter '{"username": "moon"}' -key '^twitter-' -or
 ```
 Listen from a Couchbase bucket twitter filter from json and the name of the key from a POSIX regexp.  
 Pipe it to another JSON filter and to logstash which waits for stdin json stream.  
