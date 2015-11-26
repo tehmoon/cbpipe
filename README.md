@@ -6,7 +6,7 @@ It can be chained from a previous stdin to an another cbpipe or everything accep
 
 How to install ?
 ----------------
-Download golang and follow instructions at: [https://golang.org/dl/](https://golang.org/dl/)
+Download golang and follow instructions at: [https://golang.org/dl/](https://golang.org/dl/)  
 and simply:
 
 ```shell:
